@@ -15,6 +15,7 @@
 //
 
 common_cflags = [
+    "-std=gnu11",
     "-D_REENTRANT",
     "-O3",
     "-funroll-loops",
