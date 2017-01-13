@@ -24,7 +24,7 @@ extern "C" {
  */
 #define	JEMALLOC_OVERRIDE_MEMALIGN
 #ifndef __LP64__
-#define JEMALLOC_OVERRIDE_VALLOC
+#define JEMALLOC_OVERRIDE_VALLOC 
 #endif
 
 /*
@@ -41,7 +41,7 @@ extern "C" {
  * with C++.  The only justification for this is to match the prototypes that
  * glibc defines.
  */
-/* #undef	JEMALLOC_USE_CXX_THROW */
+/* #undef JEMALLOC_USE_CXX_THROW */
 
 #ifdef _MSC_VER
 #  ifdef _WIN64
@@ -94,12 +94,12 @@ extern "C" {
 #include <limits.h>
 #include <strings.h>
 
-#define	JEMALLOC_VERSION "4.3.1-0-g0110fa8451af905affd77c3bea0d545fee2251b2"
+#define	JEMALLOC_VERSION "4.4.0-0-gf1f76357313e7dcad7262f17a48ff0a2e005fcdc"
 #define	JEMALLOC_VERSION_MAJOR 4
-#define	JEMALLOC_VERSION_MINOR 3
-#define	JEMALLOC_VERSION_BUGFIX 1
+#define	JEMALLOC_VERSION_MINOR 4
+#define	JEMALLOC_VERSION_BUGFIX 0
 #define	JEMALLOC_VERSION_NREV 0
-#define	JEMALLOC_VERSION_GID "0110fa8451af905affd77c3bea0d545fee2251b2"
+#define	JEMALLOC_VERSION_GID "f1f76357313e7dcad7262f17a48ff0a2e005fcdc"
 
 #  define MALLOCX_LG_ALIGN(la)	((int)(la))
 #  if LG_SIZEOF_PTR == 2

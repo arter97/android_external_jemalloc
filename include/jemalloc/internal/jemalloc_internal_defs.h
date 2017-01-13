@@ -61,11 +61,6 @@
 #define JEMALLOC_HAVE_BUILTIN_CLZ 
 
 /*
- * Defined if madvise(2) is available.
- */
-#define JEMALLOC_HAVE_MADVISE 
-
-/*
  * Defined if os_unfair_lock_*() functions are available, as provided by Darwin.
  */
 /* #undef JEMALLOC_OS_UNFAIR_LOCK */
@@ -76,8 +71,9 @@
  */
 /* #undef JEMALLOC_OSSPIN */
 
-/* Defined if syscall(2) is available. */
-#define JEMALLOC_HAVE_SYSCALL 
+/* Defined if syscall(2) is usable. */
+/* Syscalls are available in Android, but avoid them for security reasons. */
+/* #undef JEMALLOC_USE_SYSCALL */
 
 /*
  * Defined if secure_getenv(3) is available.
@@ -88,6 +84,9 @@
  * Defined if issetugid(2) is available.
  */
 /* #undef JEMALLOC_HAVE_ISSETUGID */
+
+/* Defined if pthread_atfork(3) is available. */
+#define JEMALLOC_HAVE_PTHREAD_ATFORK 
 
 /*
  * Defined if clock_gettime(CLOCK_MONOTONIC_COARSE, ...) is available.
@@ -169,7 +168,7 @@
  * JEMALLOC_DSS enables use of sbrk(2) to allocate chunks from the data storage
  * segment (DSS).
  */
-#define JEMALLOC_DSS 
+/* #undef JEMALLOC_DSS */
 
 /* Support memory filling (junk/zero/quarantine/redzone). */
 #define JEMALLOC_FILL 
@@ -258,18 +257,27 @@
 /* #undef JEMALLOC_SYSCTL_VM_OVERCOMMIT */
 #define JEMALLOC_PROC_SYS_VM_OVERCOMMIT_MEMORY 
 
+/* Defined if madvise(2) is available. */
+#define JEMALLOC_HAVE_MADVISE 
+
 /*
  * Methods for purging unused pages differ between operating systems.
  *
- *   madvise(..., MADV_DONTNEED) : On Linux, this immediately discards pages,
- *                                 such that new pages will be demand-zeroed if
- *                                 the address region is later touched.
- *   madvise(..., MADV_FREE) : On FreeBSD and Darwin, this marks pages as being
- *                             unused, such that they will be discarded rather
- *                             than swapped out.
+ *   madvise(..., MADV_FREE) : This marks pages as being unused, such that they
+ *                             will be discarded rather than swapped out.
+ *   madvise(..., MADV_DONTNEED) : This immediately discards pages, such that
+ *                                 new pages will be demand-zeroed if the
+ *                                 address region is later touched.
  */
-#define JEMALLOC_PURGE_MADVISE_DONTNEED 
 /* #undef JEMALLOC_PURGE_MADVISE_FREE */
+#define JEMALLOC_PURGE_MADVISE_DONTNEED 
+
+/*
+ * Defined if transparent huge pages are supported via the MADV_[NO]HUGEPAGE
+ * arguments to madvise(2).
+ */
+/* ANDROID: Do not enable huge pages because it can increase PSS. */
+/* #undef JEMALLOC_THP */
 
 /* Define if operating system has alloca.h header. */
 #define JEMALLOC_HAS_ALLOCA_H 1
