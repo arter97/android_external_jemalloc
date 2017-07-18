@@ -26,10 +26,10 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _JEMALLOC_LIBC_LOGGING_H
-#define _JEMALLOC_LIBC_LOGGING_H
+#ifndef _JEMALLOC_LIBC_LOG_LOG_H
+#define _JEMALLOC_LIBC_LOG_LOG_H
 
 /* Convert this to an abort for jemalloc tests. */
-#define __libc_fatal(format, ...) abort()
+#define async_safe_fatal(format, ...) abort()
 
 #endif  /* _JEMALLOC_LIBC_LOGGING_H */
