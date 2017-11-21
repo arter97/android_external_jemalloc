@@ -8,15 +8,17 @@
 /******************************************************************************/
 /* Data. */
 
+#define UBUNTU
+
 #ifndef _WIN32
 #  define PAGES_PROT_COMMIT (PROT_READ | PROT_WRITE)
 #  define PAGES_PROT_DECOMMIT (PROT_NONE)
 static int	mmap_flags;
 #endif
-#if !defined(__ANDROID__)
+#if !defined(UBUNTU)
 static bool	os_overcommits;
 #else
-static const bool	os_overcommits = true;
+static const bool	os_overcommits = false;
 #endif
 
 /******************************************************************************/
@@ -294,7 +296,7 @@ pages_boot(void)
 	mmap_flags = MAP_PRIVATE | MAP_ANON;
 #endif
 
-#if !defined(__ANDROID__)
+#if !defined(UBUNTU)
 #ifdef JEMALLOC_SYSCTL_VM_OVERCOMMIT
 	os_overcommits = os_overcommits_sysctl();
 #elif defined(JEMALLOC_PROC_SYS_VM_OVERCOMMIT_MEMORY)

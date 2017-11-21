@@ -4,8 +4,10 @@
 /******************************************************************************/
 /* Data. */
 
+#define UBUNTU
+
 bool		opt_thp = true;
-#if defined(__ANDROID__)
+#if defined(UBUNTU)
   // Assume CONFIG_TRANSPARENT_HUGEPAGE_ALWAYS is disabled
   static const bool	thp_initially_huge = false;
 #else
@@ -3818,7 +3820,7 @@ bin_info_init(void)
 #undef SC
 }
 
-#if !defined(__ANDROID__)
+#if !defined(UBUNTU)
 static void
 init_thp_initially_huge(void) {
 	int fd;
@@ -3891,7 +3893,7 @@ arena_boot(void)
 {
 	unsigned i;
 
-#if !defined(__ANDROID__)
+#if !defined(UBUNTU)
 	if (config_thp && opt_thp) {
 		init_thp_initially_huge();
 	}
