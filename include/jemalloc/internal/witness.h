@@ -12,6 +12,8 @@ typedef int witness_comp_t (const witness_t *, const witness_t *);
  */
 #define	WITNESS_RANK_OMIT		0U
 
+#define WITNESS_RANK_MIN		1U
+
 #define	WITNESS_RANK_INIT		1U
 #define	WITNESS_RANK_CTL		1U
 #define WITNESS_RANK_TCACHES		2U
@@ -22,6 +24,14 @@ typedef int witness_comp_t (const witness_t *, const witness_t *);
 #define	WITNESS_RANK_PROF_TDATAS	6U
 #define	WITNESS_RANK_PROF_TDATA		7U
 #define	WITNESS_RANK_PROF_GCTX		8U
+
+/*
+ * Used as an argument to witness_assert_depth_to_rank() in order to validate
+ * depth excluding non-core locks with lower ranks.  Since the rank argument to
+ * witness_assert_depth_to_rank() is inclusive rather than exclusive, this
+ * definition can have the same value as the minimally ranked core lock.
+ */
+#define WITNESS_RANK_CORE		9U
 
 #define	WITNESS_RANK_ARENA		9U
 #define	WITNESS_RANK_ARENA_CHUNKS	10U
@@ -92,10 +102,12 @@ extern witness_not_owner_error_t *witness_not_owner_error;
 void	witness_not_owner_error(const witness_t *witness);
 #endif
 #ifdef JEMALLOC_JET
-typedef void (witness_lockless_error_t)(const witness_list_t *);
-extern witness_lockless_error_t *witness_lockless_error;
+typedef void (witness_depth_error_t)(const witness_list_t *,
+    witness_rank_t rank_inclusive, unsigned depth);
+extern witness_depth_error_t *witness_depth_error;
 #else
-void	witness_lockless_error(const witness_list_t *witnesses);
+void	witness_depth_error(const witness_list_t *witnesses,
+    witness_rank_t rank_inclusive, unsigned depth);
 #endif
 
 void	witnesses_cleanup(tsd_t *tsd);
@@ -112,6 +124,9 @@ void	witness_postfork_child(tsd_t *tsd);
 bool	witness_owner(tsd_t *tsd, const witness_t *witness);
 void	witness_assert_owner(tsdn_t *tsdn, const witness_t *witness);
 void	witness_assert_not_owner(tsdn_t *tsdn, const witness_t *witness);
+void witness_assert_depth_to_rank(tsdn_t *tsdn, witness_rank_t rank_inclusive,
+    unsigned depth);
+void witness_assert_depth(tsdn_t *tsdn, unsigned depth);
 void	witness_assert_lockless(tsdn_t *tsdn);
 void	witness_lock(tsdn_t *tsdn, witness_t *witness);
 void	witness_unlock(tsdn_t *tsdn, witness_t *witness);
@@ -123,6 +138,8 @@ witness_owner(tsd_t *tsd, const witness_t *witness)
 {
 	witness_list_t *witnesses;
 	witness_t *w;
+
+	cassert(config_debug);
 
 	witnesses = tsd_witnessesp_get(tsd);
 	ql_foreach(w, witnesses, link) {
@@ -176,9 +193,10 @@ witness_assert_not_owner(tsdn_t *tsdn, const witness_t *witness)
 }
 
 JEMALLOC_INLINE void
-witness_assert_lockless(tsdn_t *tsdn)
-{
+witness_assert_depth_to_rank(tsdn_t *tsdn, witness_rank_t rank_inclusive,
+    unsigned depth) {
 	tsd_t *tsd;
+	unsigned d;
 	witness_list_t *witnesses;
 	witness_t *w;
 
@@ -189,10 +207,29 @@ witness_assert_lockless(tsdn_t *tsdn)
 		return;
 	tsd = tsdn_tsd(tsdn);
 
+	d = 0;
 	witnesses = tsd_witnessesp_get(tsd);
 	w = ql_last(witnesses, link);
-	if (w != NULL)
-		witness_lockless_error(witnesses);
+	if (w != NULL) {
+		ql_reverse_foreach(w, witnesses, link) {
+			if (w->rank < rank_inclusive) {
+				break;
+			}
+			d++;
+		}
+	}
+	if (d != depth)
+		witness_depth_error(witnesses, rank_inclusive, depth);
+}
+
+JEMALLOC_INLINE void
+witness_assert_depth(tsdn_t *tsdn, unsigned depth) {
+	witness_assert_depth_to_rank(tsdn, WITNESS_RANK_MIN, depth);
+}
+
+JEMALLOC_INLINE void
+witness_assert_lockless(tsdn_t *tsdn) {
+	witness_assert_depth(tsdn, 0);
 }
 
 JEMALLOC_INLINE void
